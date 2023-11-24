@@ -14,19 +14,42 @@ void SwitchManager::addSwitch(int pin, String pathOn, String pathOff, String pat
 }
 
 void SwitchManager::beginAll(WiFiServer &server) {
-    for (int i = 0; i < switchCount; i++) {
-        WiFiClient client = server.available();
-        if (client) {
-            switchList[i]->handleClient(&client);
-        }
-    }
+    handleClients(server);
 }
 
 void SwitchManager::handleClients(WiFiServer &server) {
     WiFiClient client = server.available();
     if (client) {
-        for (int i = 0; i < switchCount; i++) {
-            switchList[i]->handleClient(&client);
+        String currentLine = "";
+        String response = "";
+        while (client.connected()) {
+            if (client.available()) {
+                char c = client.read();
+                Serial.write(c);
+                currentLine += c;
+
+                if (currentLine.endsWith("\n")) {
+                    String request = currentLine;
+                    int slashIndex = request.indexOf('/', request.indexOf('/') + 1);
+                    String controller = request.substring(request.indexOf('/') + 1, slashIndex);
+                    Serial.println("Controller: " + controller);
+                    Serial.println("URL: " + request);
+                    for (int i = 0; i < switchCount; i++) {
+                        if (switchList[i]->PathOn().indexOf(controller) != -1) {
+                            response = switchList[i]->handleClient(currentLine);
+                            break;
+                        }
+                    }
+                    client.println("HTTP/1.1 200 OK");
+                    client.println("Content-Type: application/json");
+                    client.println("Connection: close");
+                    client.println("Access-Control-Allow-Origin: *");
+                    client.println();
+                    client.println(response);
+                    break;
+                }
+            }
         }
+        client.stop();
     }
 }

@@ -21,7 +21,11 @@ void setup() {
     Serial.println("Connected to WiFi");
 
     server.begin();
-
+    
+    pinMode(5, OUTPUT);
+    pinMode(4, OUTPUT);
+    pinMode(2, OUTPUT);
+    pinMode(15, OUTPUT);
     // Adding switches
     switchManager.addSwitch(5, "/switch1/on", "/switch1/off", "/switch1/state", server);
     switchManager.addSwitch(4, "/switch2/on", "/switch2/off", "/switch2/state", server);

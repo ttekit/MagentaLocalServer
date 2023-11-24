@@ -17,12 +17,17 @@ private:
 
 public:
     SwitchControl(int p, String on, String off, String state, WiFiServer &srv);
-    void handleClient(WiFiClient *client);
-    String getState();
-    void turnOn();
-    void turnOff();
-};
 
+    String handleClient(String client);
+
+    String getState();
+
+    void turnOn();
+
+    void turnOff();
+
+    String PathOn();
+};
 
 
 #endif //MAGENTASERV_SWITCHCONTROL_H

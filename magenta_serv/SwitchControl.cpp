@@ -10,47 +10,20 @@ SwitchControl::SwitchControl(int p, String on, String off, String state, WiFiSer
     digitalWrite(pin, LOW);
 }
 
-void SwitchControl::handleClient(WiFiClient *client) {
-    // Check if there is a client connected
-    if (!client || !client->connected()) return;
-
-    String currentLine = "";
-    while (client->connected()) {
-        if (client->available()) {
-            char c = client->read();
-            Serial.write(c);
-            currentLine += c;
-
-            if (currentLine.endsWith("\n")) {
-
-                String request = currentLine;
-                String response;
-
-                if (request.indexOf(pathOn) != -1) {
-                    turnOn();
-                    response = "{\"status\":\"on\"}";
-                } else if (request.indexOf(pathOff) != -1) {
-                    turnOff();
-                    response = "{\"status\":\"off\"}";
-                } else {
-                    response = "{\"status\":\""+getState()+"\"}";
-                }
-
-                // Send the HTTP response headers
-                client->println("HTTP/1.1 200 OK");
-                client->println("Content-Type: application/json");
-                client->println("Connection: close");
-                client->println("Access-Control-Allow-Origin: *");
-                client->println();
-
-                client->println(response);
-                break;
-            }
-        }
+String SwitchControl::handleClient(String link) {
+    String response = "";
+    if (link.indexOf(pathOn) != -1) {
+        turnOn();
+        Serial.println("Action: ON");
+        response = "on";
+    } else if (link.indexOf(pathOff) != -1) {
+        turnOff();
+        Serial.println("Action: OFF");
+        response = "off";
+    } else {
+        response = getState();
     }
-    Serial.println("Request received!");
-    Serial.println("Response sent!");
-    client->stop();
+    return response;
 }
 
 String SwitchControl::getState() {
@@ -63,4 +36,8 @@ void SwitchControl::turnOn() {
 
 void SwitchControl::turnOff() {
     digitalWrite(pin, LOW);
+}
+
+String SwitchControl::PathOn() {
+    return pathOn;
 }
